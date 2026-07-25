@@ -52,11 +52,11 @@ build the right end state" habit — guessing wrong on either one means
 reworking the module's shape, not just a config tweak):
 
 1. **Where does the proxy run?** The whole point of the AST2500 KVM leg (in
-   the wider the build host command-central plan this project split off from)
+   the wider bare-metal command-central plan this project split off from)
    is pre-boot / degraded-state access — reachable when the pools are down or
    k3s itself isn't up. Running nixbmc *as a k3s app* would make it share fate
    with exactly the failure modes it's meant to survive. Leaning towards: a
-   small bare-metal NixOS-declared systemd service on the build host itself
+   small bare-metal NixOS-declared systemd service on the hub host itself
    (same posture as `rescue-maintain` / other bare-metal-declared services),
    not a k3s deployment.
 2. **Exposure model.** NetBird-only (matches how sensitive out-of-band access
