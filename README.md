@@ -89,7 +89,7 @@ for v1 — display + input is the actual ask.
 nixbmc is one of several small, independently-usable open-source projects
 sharing a common design system: [nixarch](https://github.com/julian-corbet/nixarch-corbet-ch),
 nixvps, nixram, nixnas, [nixremote](https://github.com/julian-corbet/nixremote-corbet-ch),
-[nixfish](https://github.com/julian-corbet/nixfish-corbet-ch). Its niche is a
+[nixsh](https://github.com/julian-corbet/nixsh-corbet-ch). Its niche is a
 single out-of-band console protocol — narrow by design, useful to anyone with
 the same BMC generation regardless of whether they run anything else in this
 family.
