@@ -61,7 +61,7 @@ reworking the module's shape, not just a config tweak):
    not a k3s deployment.
 2. **Exposure model.** NetBird-only (matches how sensitive out-of-band access
    is generally treated — full HID/keyboard/mouse control of the physical
-   host is a bigger blast radius than most fleet services), or also reachable
+   host is a bigger blast radius than most services across hosts), or also reachable
    via cloudflared for access from a device with no NetBird client installed?
    The "go to a URL on my phone" framing from the wider vision could mean
    either, depending on whether the phone is expected to already be on the
