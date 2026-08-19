@@ -1,8 +1,9 @@
 // Decodes the AMI/ASPEED KVM video stream: a tile-based hybrid of VQ (vector
 // quantization) and JPEG (DCT + Huffman + quantization), YUV 4:2:0, with
 // optional RC4 encryption of the entropy-coded data and delta (skip) tiles
-// relative to the previous frame. See ../../docs/codec-notes.md for the
-// protocol facts this implements and where they came from.
+// relative to the previous frame. The protocol facts this implements were
+// established from a live capture against a real board; that write-up
+// (docs/codec-notes.md) is not written yet — see the README's "Status".
 import { initHuffmanTables } from "./huffman.js";
 import { decodeFrame, roundUp } from "./decode.js";
 import { newRc4State } from "./rc4.js";

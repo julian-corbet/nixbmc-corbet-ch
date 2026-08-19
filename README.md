@@ -10,8 +10,9 @@ they are both "BMC-shaped" and nothing else:
   see below.
 - **A clean-room, browser-native replacement for the flaky bundled KVM viewer** on
   AMI MegaRAC-family BMCs (AST2500/AST2600, the same firmware lineage shipped by Gigabyte,
-  Supermicro, ASRock Rack, Tyan, and Lenovo) — still pre-alpha, blocked on the open questions
-  below.
+  Supermicro, ASRock Rack, Tyan, and Lenovo) — pre-alpha. The codec is written and partly
+  working; the session, transport, render and input layers are not. The open questions below
+  gate the proxy and its module, not the codec.
 
 ## BMC access (`nixbmc.*`)
 
@@ -102,7 +103,7 @@ own firmware and its own view of the hardware. It *answers* power questions but 
 power knob, and folding its tooling into a power-stance module makes both harder to reason
 about.
 
-## The browser KVM viewer (planned)
+## The browser KVM viewer (pre-alpha)
 
 [`rd450x-console`](https://github.com/BadCoder1337/rd450x-console) is the
 precedent this project follows the shape of, not the substance: it replaces a
@@ -160,8 +161,45 @@ under `nix flake check`.
 - [ ] Redfish/remote-BMC leg (out of scope for this module; a genuinely separate concern —
   see "BMC access" above)
 
-**The browser KVM viewer is pre-alpha — scaffold only, no module written yet.** Blocked on two
-open questions before the first line of the actual client/proxy gets written
+**The browser KVM viewer is pre-alpha.** The codec is written — `client/codec/`, a clean-room
+port of the ASPEED VQ + JPEG + RC4 + YUV path — and its JPEG path decodes a real frame. No other
+layer of the client exists.
+
+| Layer | State |
+|---|---|
+| Codec (`client/codec/`, 10 files) | Written; JPEG path decodes. See the defects below |
+| IVTP framing / WebSocket transport | Not written |
+| `POST /api/session` handshake | Not written |
+| Canvas render loop | Not written |
+| HID keyboard/mouse input | Not written |
+| Reverse proxy (TLS termination + auth brokering) | Not written — gated on the open questions |
+| `nixosModules.kvm` | Not written — gated on the open questions |
+
+Known defects in the codec. **None of these are gated on the open questions** — the codec is pure
+client-side and can be fixed and tested without settling where anything runs:
+
+- **VQ writes the 4:4:4 tile layout while decoding 4:2:0.** `client/codec/vq.js` fills
+  `st.yuvTile` at offsets 0/64/128 for 64 pixels, which is the 4:4:4 shape. The 4:2:0 path in
+  `client/codec/yuv.js` reads four luma blocks at 0–255, Cb at 256–319 and Cr at 320–383 — so
+  luma blocks 1 and 2 receive the Cb and Cr values *as luma*, while luma block 3 and both chroma
+  blocks keep whatever the previous tile left behind. This hits macro-block codes 5/6/7/13/14/15,
+  the cheap flat-tile path a text console is mostly made of.
+- **The resolution guard rejects the resolution that actually works.** `MAX_RESOLUTION` in
+  `client/codec/decoder.js` is 1500, and `decodeFrame` takes `destX`/`destY` as the full frame
+  geometry, so both 1600x1200 and 1920x1200 throw.
+  [`studies/ast2500-display-and-capture-ceilings.md`](studies/ast2500-display-and-capture-ceilings.md)
+  establishes 1920x1200 as both the hardware ceiling and the one mode a headless AST board
+  reliably reaches — 1080p being blocked by an upstream DMT sync-polarity bug.
+- **Multi-fragment continuation is not implemented.** Only a full frame arriving in a single
+  `CMD_VIDEO_PACKETS` payload decodes; the vendor client's `prev_complete` continuation path has
+  no equivalent here.
+- **The protocol facts are undocumented and there is no fixture.** `docs/codec-notes.md` does not
+  exist, and `experiments/` holds no capture — so the JPEG path's verification against a live
+  frame is not reproducible, and the VQ defect above has nothing to be tested against. Writing
+  that document is also what carries the clean-room posture: it is the record of which protocol
+  facts came from a live capture rather than from the vendor's own JS.
+
+Two open questions gate the proxy and its module
 (bringing these here rather than guessing, per the project's own "no MVP,
 build the right end state" habit — guessing wrong on either one means
 reworking the module's shape, not just a config tweak):
@@ -199,7 +237,8 @@ for v1 — display + input is the actual ask.
 | `modules/nixbmc.nix` | `nixbmc.*` option schema + the platform-neutral `archPackages`/`aurPackages` resolution. Installs nothing itself. |
 | `modules/nixos.nix` | NixOS backend — `environment.systemPackages` + `boot.kernelModules` (the latter gated on `ipmitool.inBand`). |
 | `modules/arch.nix` | Arch/system-manager backend — publishes `archPackages`/`aurPackages` for a consumer's own reconciler; asserts at eval time if `ipmitool.inBand` is left `true` on a plane with no `boot.kernelModules`. |
-| `checks/default.nix` | Eval-time proof of the `nixbmc.*` option surface, both directions, both backends. |
+| `checks/default.nix` | Eval-time proof of the `nixbmc.*` option surface, both directions, both backends. Covers `nixbmc.*` only — the codec has no tests. |
+| `client/codec/` | Clean-room JS port of the ASPEED KVM video codec (VQ + JPEG + RC4 + YUV→BGR), pre-alpha — see "Status" for its defects. No transport, session, render or input layer exists yet. |
 | `experiments/` | Throwaway trials — see [`experiments/README.md`](experiments/README.md). |
 | `studies/` | Written-up findings — see [`studies/README.md`](studies/README.md). |
 

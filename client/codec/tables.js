@@ -3,8 +3,9 @@
 // tile stream at all — a client that used different numbers simply could not
 // reproduce what the encoder assumed. The Huffman/zigzag tables and IDCT
 // constants below are the public ITU-T T.81 / Arai-Agui-Nakajima values, not
-// vendor-specific. See ../../docs/codec-notes.md for the full reasoning and
-// http://JPEG.org (ITU-T T.81) plus Arai, Agui, Nakajima (1988) for sources.
+// vendor-specific: see http://JPEG.org (ITU-T T.81) plus Arai, Agui, Nakajima
+// (1988) for the sources. The full reasoning belongs in docs/codec-notes.md,
+// which is not written yet — see the README's "Status".
 
 export const zigzag = new Uint8Array([
   0, 1, 5, 6, 14, 15, 27, 28, 2, 4, 7, 13, 16, 26, 29, 42,
@@ -62,7 +63,7 @@ export const acChrominanceHuffmancode = [0, 0, 16384, 2, 32768, 2, 40960, 3, 450
 
 // Per-quality-level (0..7) luminance/chrominance quantization tables — the
 // specific numbers a real AST encoder assumes; decoding requires reproducing
-// them exactly (interoperability, not creative choice — see docs/codec-notes.md).
+// them exactly (interoperability, not creative choice).
 const tbl100Y = [2, 1, 1, 2, 3, 5, 6, 7, 1, 1, 1, 2, 3, 7, 7, 6, 1, 1, 2, 3, 5, 7, 8, 7, 1, 2, 2, 3, 6, 10, 10, 7, 2, 2, 4, 7, 8, 13, 12, 9, 3, 4, 6, 8, 10, 13, 14, 11, 6, 8, 9, 10, 12, 15, 15, 12, 9, 11, 11, 12, 14, 12, 12, 12];
 const tbl100UV = [3, 3, 4, 8, 18, 18, 18, 18, 3, 3, 4, 12, 18, 18, 18, 18, 4, 4, 10, 18, 18, 18, 18, 18, 8, 12, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18];
 const tbl086Y = [3, 2, 1, 3, 4, 7, 9, 11, 2, 2, 2, 3, 4, 10, 11, 10, 2, 2, 3, 4, 7, 10, 12, 10, 2, 3, 4, 5, 9, 16, 15, 11, 3, 4, 6, 10, 12, 20, 19, 14, 4, 6, 10, 12, 15, 19, 21, 17, 9, 12, 14, 16, 19, 22, 22, 18, 13, 17, 17, 18, 21, 18, 19, 18];

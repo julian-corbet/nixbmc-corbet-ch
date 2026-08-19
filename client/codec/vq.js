@@ -1,7 +1,13 @@
 import { lookKbits, skipKbits } from "./bitreader.js";
 import { convertYUVtoRGB } from "./yuv.js";
 
-// decompressVQ fills a 16×16 (or 8×8 in 4:4:4) tile from a 1/2/4-entry 24-bit
+// DEFECT — this writes only the 4:4:4 tile layout (Y/Cb/Cr at yuvTile 0/64/128,
+// 64 pixels). In 4:2:0 the consumer, yuv.js, reads four luma blocks at 0–255,
+// Cb at 256–319 and Cr at 320–383, so luma blocks 1 and 2 get the Cb/Cr values
+// as luma while luma block 3 and both chroma blocks keep the previous tile's
+// contents. Affects macro-block codes 5/6/7/13/14/15. See README "Status".
+//
+// decompressVQ is MEANT to fill a 16×16 (or 8×8 in 4:4:4) tile from a 1/2/4-entry 24-bit
 // colour cache (packed 0xYYCbCr — the AST VQ path stores YCbCr, not RGB, in
 // the 24-bit cache word), optionally reading a per-pixel index of BitMapBits
 // bits, then runs the same YUV->RGB conversion as the JPEG path.
